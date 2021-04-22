@@ -74,7 +74,7 @@ export default class CreateClient extends Component {
       lastname: '',
       age: '',
       fecha: 'Selecciona Fecha',
-      confirmLabel: 'Se registro Cliente',
+      confirmLabel: '',
     });
   }
   async doConfirm() {
