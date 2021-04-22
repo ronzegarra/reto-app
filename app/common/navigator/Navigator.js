@@ -59,7 +59,7 @@ function ListClientScreen({navigation}) {
 function HomeTab() {
   return (
     <Tab.Navigator
-      initialRouteName="ListClientScreen"
+      initialRouteName="CreateClient"
       tabBarOptions={{
         activeTintColor: '#e91e63',
       }}>

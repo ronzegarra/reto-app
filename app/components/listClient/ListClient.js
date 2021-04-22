@@ -5,7 +5,7 @@ function Item({item}) {
   return (
     <View>
       <View style={styles.item}>
-        {/*<Image source={{uri: image}} style={{height: 40, width: 40}} />*/}
+       
         <View style={{flexDirection: 'row'}}>
           <Text style={styles.title}>
             <Text style={{fontWeight: 'bold'}}>Nombre: </Text> {item.name}

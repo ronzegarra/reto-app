@@ -9,31 +9,13 @@ import {
   View,
   TextInput,
   Alert,
-  Image,
-  Switch,
-  Picker,
-  ScrollView,
   Dimensions,
-  Button,
   TouchableWithoutFeedback,
 } from 'react-native';
-
-import ModalSelector from 'react-native-modal-selector';
 
 import DateTimePicker from 'react-native-modal-datetime-picker';
 
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
-
-//import format from '../../tools/format';
-//import {bindActionCreators} from 'redux';
-//import {connect} from 'react-redux';
-//import actions from '../../redux/actions';
-//import CargandoView from '../Common/CargandoView';
-//import BarraNavegacion from '../Common/BarraNavegacionView';
-////import SofiaBubble from '../Sofia/components/buttonBubbleView'
-//import theme from '../../theme/theme';
-
-//import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 
 var {width, height} = Dimensions.get('window');
 
@@ -42,14 +24,6 @@ export default class CreateClient extends Component {
     super(props);
 
     this.state = {
-      accounts: [
-        {key: 1, label: '000000000231456'},
-        {key: 2, label: '000000000231455'},
-        {key: 3, label: '000000000231457'},
-      ],
-
-      originAccount: '',
-      destineAccount: '',
       fecha: 'Selecciona Fecha',
       importe: '',
       referencia: '',
@@ -60,16 +34,6 @@ export default class CreateClient extends Component {
       age: '',
     };
   }
-
-  changeOriginAcount = account => {
-    console.warn(account);
-    this.setState({originAccount: account});
-  };
-
-  changeDestineAccount = account => {
-    console.warn(account);
-    this.setState({destineAccount: account});
-  };
 
   showDateTimePicker = () => {
     this.setState({isDateTimePickerVisible: true});
@@ -83,36 +47,11 @@ export default class CreateClient extends Component {
     console.log('A date has been picked: ', date);
 
     this.setState({
-      fecha: moment(date).format('DD/MM/YYYY'),
-      fechaFormat: moment(date).format('YY/MM/DD'),
+      fecha: moment(date).format('YYYY-MM-DD'),
+      fechaFormat: moment(date).format('YYYY-MM-DD'),
     });
 
     this.hideDateTimePicker();
-  };
-
-  changeImporte = importe => {
-    this.setState({importe});
-  };
-
-  changeReferencia = referencia => {
-    this.setState({referencia});
-  };
-
-  doTransfer = () => {
-    console.warn('Transferes');
-
-    let data = {
-      originAccount: this.state.originAccount.label,
-      destineAccount: this.state.destineAccount.label,
-      fecha: this.state.fecha,
-      importe: this.state.importe,
-      referencia: this.state.referencia,
-      mail: this.state.sendMail,
-    };
-
-    console.warn('data', data);
-
-    this.props.navigation.navigate('Second', {data});
   };
 
   changeName = name => {
@@ -128,26 +67,62 @@ export default class CreateClient extends Component {
   };
 
   doCancel() {
-
-    console.log('CANCEL')
+    console.log('CANCEL');
 
     this.setState({
       name: '',
       lastname: '',
       age: '',
       fecha: 'Selecciona Fecha',
+      confirmLabel: 'Se registro Cliente',
     });
   }
-  doConfirm() {
-   
-    let data = {
-      name: this.state.name,
-      last_name: this.state.lastname,
-      age: this.state.age,
-      date_birth: this.state.fecha,
-    };
+  async doConfirm() {
+    if (
+      this.state.name == '' ||
+      this.state.lastname == '' ||
+      this.state.age == '' ||
+      this.state.date_birth == ''
+    ) {
+      Alert.alert('Alerta', 'Llene todos los campos', [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        {text: 'OK', onPress: () => console.log('OK Pressed')},
+      ]);
+    } else {
+      let data = {
+        name: this.state.name,
+        last_name: this.state.lastname,
+        age: this.state.age,
+        date_birth: this.state.fecha,
+      };
 
-    console.warn('DATA-->>', data);
+      const response = await fetch(
+        `https://reto-api-rest-server.herokuapp.com/creacliente/`,
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        },
+      );
+
+      if (response.ok == true) {
+        this.setState({
+          confirmLabel:
+            'Se registro Cliente correctamente, Si desea registrar un nuevo Cliente por favor ingrese sus datos',
+          name: '',
+          lastname: '',
+          age: '',
+          fecha: 'Selecciona Fecha',
+        });
+      }
+    }
   }
 
   render() {
@@ -166,6 +141,7 @@ export default class CreateClient extends Component {
                 <View style={[styles.viewInput, {height: 35}]}>
                   <TextInput
                     underlineColorAndroid={'transparent'}
+                    value={this.state.name}
                     style={[styles.picker, {height: 40, borderRadius: 6}]}
                     onChangeText={name => this.changeName(name)}
                   />
@@ -185,6 +161,7 @@ export default class CreateClient extends Component {
                   <TextInput
                     underlineColorAndroid={'transparent'}
                     style={[styles.picker, {height: 40, borderRadius: 6}]}
+                    value={this.state.lastname}
                     onChangeText={lastname => this.changeLastName(lastname)}
                   />
                 </View>
@@ -203,6 +180,7 @@ export default class CreateClient extends Component {
                   <TextInput
                     underlineColorAndroid={'transparent'}
                     keyboardType="numeric"
+                    value={this.state.age}
                     style={[styles.picker, {height: 40, borderRadius: 6}]}
                     onChangeText={age => this.changeAge(age)}
                   />
@@ -210,7 +188,16 @@ export default class CreateClient extends Component {
               </View>
             </View>
 
-            <Text style={styles.titleInput}>Fecha de Nacimiento</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                marginBottom: 5,
+              }}>
+              <View style={{flexDirection: 'column', alignSelf: 'stretch'}}>
+                <Text style={styles.titleInput}>Fecha de Nacimiento</Text>
+              </View>
+            </View>
             <TouchableWithoutFeedback onPress={this.showDateTimePicker}>
               <View style={styles.viewCalendar}>
                 <Text Text style={styles.title}>
@@ -243,6 +230,17 @@ export default class CreateClient extends Component {
                 onPress={() => this.doConfirm()}>
                 <Text style={styles.textoBoton}>CONFIRMAR</Text>
               </TouchableOpacity>
+            </View>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'flex-start',
+                marginBottom: 5,
+              }}>
+              <View style={{flexDirection: 'column', alignSelf: 'stretch'}}>
+                <Text style={styles.titleInput}>{this.state.confirmLabel}</Text>
+              </View>
             </View>
           </View>
         </KeyboardAwareScrollView>
